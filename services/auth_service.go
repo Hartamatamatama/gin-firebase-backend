@@ -3,8 +3,11 @@ package services
 import (
 	"context"
 	"errors"
+	"os"
+	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/hartamatamatama/gin-firebase-backend/config"
 	"github.com/hartamatamatama/gin-firebase-backend/models"
 	"github.com/hartamatamatama/gin-firebase-backend/repositories"
@@ -71,4 +74,28 @@ func (s *AuthService) VerifyFirebaseToken(firebaseToken string) (string, *models
 		return "", nil, errors.New("gagal membuat token")
 	}
 	return jwtToken, user, nil
+}
+
+// generateJWT membuat JWT token dengan payload user
+func (s *AuthService) generateJWT(user *models.User) (string, error) {
+	expireHours, _ := strconv.Atoi(os.Getenv("JWT_EXPIRE_HOURS"))
+	if expireHours == 0 {
+		expireHours = 24
+	}
+
+	// Claims adalah payload yang disimpan dalam token
+	claims := jwt.MapClaims{
+		"sub":            user.ID,
+		"firebase_uid":   user.FirebaseUID,
+		"email":          user.Email,
+		"name":           user.Name,
+		"role":           user.Role,
+		"iat":            time.Now().Unix(),
+		"exp":            time.Now().Add(time.Hour * time.Duration(expireHours)).Unix(),
+		"email_verified": user.EmailVerified,
+	}
+
+	// Buat token dengan algoritma HS256 dan secret key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
