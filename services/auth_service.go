@@ -21,4 +21,8 @@ func (s *AuthService) VerifyFirebaseToken(firebaseToken string) (string, *models
 		return "", nil, errors.New("firebase token tidak valid atau kadaluarsa")
 	}
 
-	
+	// 2. Cek apakah email sudah diverifikasi
+	emailVerified, _ := token.Claims["email_verified"].(bool)
+	if !emailVerified {
+		return "", nil, errors.New("EMAIL_NOT_VERIFIED")
+	}
