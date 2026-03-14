@@ -31,3 +31,29 @@ func (s *AuthService) VerifyFirebaseToken(firebaseToken string) (string, *models
 	uid := token.UID
 	email, _ := token.Claims["email"].(string)
 	name, _ := token.Claims["name"].(string)
+
+	// 4. Cari user di database, buat jika belum ada (first time login)
+	user, err := s.userRepo.FindByFirebaseUID(uid)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// User pertama kali login buat user baru
+		now := time.Now().Unix()
+		user = &models.User{
+			FirebaseUID:   uid,
+			Email:         email,
+			Name:          name,
+			Role:          "user",
+			EmailVerified: true,
+			LastLoginAt:   &now,
+		}
+		if err := s.userRepo.Create(user); err != nil {
+			return "", nil, errors.New("gagal membuat user baru")
+		}
+	} else if err != nil {
+		return "", nil, errors.New("error mengambil data user")
+	} else {
+		// Update last login
+		now := time.Now().Unix()
+		user.LastLoginAt = &now
+		user.EmailVerified = true
+		s.userRepo.Update(user)
+	}
