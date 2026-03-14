@@ -43,3 +43,8 @@ func (r *ProductRepository) FindByID(id uint) (*models.Product, error) {
 func (r *ProductRepository) Create(product *models.Product) error {
 	return config.DB.Create(product).Error
 }
+
+// Update memperbarui produk
+func (r *ProductRepository) Update(product *models.Product) error {
+	return config.DB.Save(product).Error
+}
