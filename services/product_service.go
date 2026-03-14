@@ -26,3 +26,16 @@ func (s *ProductService) GetAll(page, limit int, category string) ([]models.Prod
 func (s *ProductService) GetByID(id uint) (*models.Product, error) {
 	return s.productRepo.FindByID(id)
 }
+
+func (s *ProductService) Create(req models.CreateProductRequest) (*models.Product, error) {
+	product := &models.Product{
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		Stock:       req.Stock,
+		Category:    req.Category,
+		ImageURL:    req.ImageURL,
+	}
+	err := s.productRepo.Create(product)
+	return product, err
+}
