@@ -22,3 +22,7 @@ func (s *ProductService) GetAll(page, limit int, category string) ([]models.Prod
 	}
 	return s.productRepo.FindAll(page, limit, category)
 }
+
+func (s *ProductService) GetByID(id uint) (*models.Product, error) {
+	return s.productRepo.FindByID(id)
+}
