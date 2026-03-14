@@ -69,3 +69,7 @@ func (s *ProductService) Update(id uint, req models.UpdateProductRequest) (*mode
 	err = s.productRepo.Update(product)
 	return product, err
 }
+
+func (s *ProductService) Delete(id uint) error {
+	return s.productRepo.Delete(id)
+}
