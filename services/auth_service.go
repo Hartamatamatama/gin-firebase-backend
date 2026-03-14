@@ -1,7 +1,14 @@
 package services
 
 import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/hartamatamatama/gin-firebase-backend/config"
+	"github.com/hartamatamatama/gin-firebase-backend/models"
 	"github.com/hartamatamatama/gin-firebase-backend/repositories"
+	"gorm.io/gorm"
 )
 
 type AuthService struct {
@@ -57,3 +64,11 @@ func (s *AuthService) VerifyFirebaseToken(firebaseToken string) (string, *models
 		user.EmailVerified = true
 		s.userRepo.Update(user)
 	}
+
+	// 5. Generate Backend JWT Token
+	jwtToken, err := s.generateJWT(user)
+	if err != nil {
+		return "", nil, errors.New("gagal membuat token")
+	}
+	return jwtToken, user, nil
+}
