@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/hartamatamatama/gin-firebase-backend/config"
 	"github.com/hartamatamatama/gin-firebase-backend/models"
 	"github.com/hartamatamatama/gin-firebase-backend/repositories"
