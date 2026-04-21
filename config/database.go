@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hartamatamatama/gin-firebase-backend/models" // Sesuaikan dengan module kamu
+	"github.com/hartamatamatama/gin-firebase-backend/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -15,7 +15,7 @@ import (
 var DB *gorm.DB
 
 func InitDatabase() {
-	// Ambil konfigurasi dari environment variables (.env)
+	// Ambil konfigurasi dari environment variables
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	user := os.Getenv("DB_USER")
@@ -54,6 +54,9 @@ func InitDatabase() {
 	err = DB.AutoMigrate(
 		&models.User{},
 		&models.Product{},
+		&models.CartItem{},
+		&models.Order{},
+		&models.OrderItem{},
 	)
 	if err != nil {
 		log.Fatalf("AutoMigrate gagal: %v", err)
