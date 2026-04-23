@@ -52,9 +52,9 @@ func (s *OrderService) Checkout(userID uint, req *models.CheckoutRequest) (*mode
 			Subtotal:    subtotal,
 		})
 
-		// Kurangi stok
-		newStock := product.Stock - item.Quantity
-		if err := s.productRepo.UpdateStock(product.ID, newStock); err != nil {
+		// Kurangi stok: Kirimkan jumlah barang yang dibeli (Quantity),
+		// karena Repository sudah bertugas melakukan pengurangannya.
+		if err := s.productRepo.UpdateStock(product.ID, item.Quantity); err != nil {
 			return nil, err
 		}
 	}
