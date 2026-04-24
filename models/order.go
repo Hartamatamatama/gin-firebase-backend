@@ -38,4 +38,5 @@ type OrderItem struct {
 type CheckoutRequest struct {
 	ShippingAddress string `json:"shipping_address" binding:"required"`
 	Notes           string `json:"notes"`
+	FCMToken        string `json:"fcm_token"`
 }
