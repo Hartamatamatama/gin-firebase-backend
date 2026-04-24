@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
 	"github.com/gin-gonic/gin"
 	"github.com/hartamatamatama/gin-firebase-backend/models"
 	"github.com/hartamatamatama/gin-firebase-backend/services"
+	"google.golang.org/api/option"
 )
 
 type OrderHandler struct {
@@ -32,6 +37,38 @@ func (h *OrderHandler) Checkout(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
 		return
 	}
+
+	// === OPERASI PELUNCURAN NOTIFIKASI FCM ===
+	if req.FCMToken != "" {
+		// 1. Inisialisasi Firebase Admin
+		opt := option.WithCredentialsFile("serviceAccountKey.json") // Pastikan file ini ada!
+		app, err := firebase.NewApp(context.Background(), nil, opt)
+		if err == nil {
+			client, err := app.Messaging(context.Background())
+			if err == nil {
+				// 2. Siapkan Amunisi Pesan
+				message := &messaging.Message{
+					Notification: &messaging.Notification{
+						Title: "Order Diterima 🛍️",
+						Body:  "Pesanan jam tangan mewahmu sedang kami proses ke alamat: " + req.ShippingAddress,
+					},
+					Token: req.FCMToken, // Tembak ke HP yang tepat
+				}
+
+				// 3. Luncurkan!
+				_, sendErr := client.Send(context.Background(), message)
+				if sendErr != nil {
+					fmt.Println("Gagal mengirim notifikasi:", sendErr)
+				} else {
+					fmt.Println("🔔 Notifikasi sukses ditembakkan ke HP user!")
+				}
+			}
+		} else {
+			fmt.Println("Gagal inisialisasi Firebase Admin:", err)
+		}
+	}
+	// ==========================================
+
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
 		"message": "Pesanan berhasil dibuat",
