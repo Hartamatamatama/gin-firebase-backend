@@ -53,3 +53,20 @@ func (r *ProductRepository) Update(product *models.Product) error {
 func (r *ProductRepository) Delete(id uint) error {
 	return config.DB.Delete(&models.Product{}, id).Error
 }
+
+// ===== FITUR BARU DARI PENCANGKOKAN DOSEN =====
+
+// UpdateStock mengupdate jumlah stok produk di database saat checkout
+func (r *ProductRepository) UpdateStock(productID uint, quantity int) error {
+	// 1. Temukan produknya dulu berdasarkan ID
+	var product models.Product
+	if err := config.DB.First(&product, productID).Error; err != nil {
+		return err
+	}
+
+	// 2. Kurangi stoknya
+	product.Stock = product.Stock - quantity
+
+	// 3. Simpan perubahan stok ke database
+	return config.DB.Save(&product).Error
+}
