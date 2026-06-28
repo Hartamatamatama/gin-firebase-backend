@@ -1,0 +1,13 @@
+# .gitignore
+.env
+serviceAccountKey.json
+*.exe
+*.test
+/tmp
+/vendor.hermes-tmp*
+service_account.json
+service_account.json
+.env
+logs/
+screenshots/
+.hermes-tmp*
