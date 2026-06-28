@@ -51,12 +51,6 @@ func (s *OrderService) Checkout(userID uint, req *models.CheckoutRequest) (*mode
 			Quantity:    item.Quantity,
 			Subtotal:    subtotal,
 		})
-
-		// Kurangi stok: Kirimkan jumlah barang yang dibeli (Quantity),
-		// karena Repository sudah bertugas melakukan pengurangannya.
-		if err := s.productRepo.UpdateStock(product.ID, item.Quantity); err != nil {
-			return nil, err
-		}
 	}
 
 	// Buat order
@@ -106,5 +100,18 @@ func (s *OrderService) UpdateOrderStatus(orderID uint, status models.OrderStatus
 }
 
 func (s *OrderService) ConfirmPayment(orderID, userID uint) error {
+	// Dapatkan order untuk tahu produk apa yang dibeli
+	order, err := s.orderRepo.GetByID(orderID, userID)
+	if err != nil {
+		return errors.New("order tidak ditemukan")
+	}
+
+	// Kurangi stok untuk setiap item di order (baru setelah bayar!)
+	for _, item := range order.Items {
+		if err := s.productRepo.UpdateStock(item.ProductID, item.Quantity); err != nil {
+			return err
+		}
+	}
+
 	return s.orderRepo.UpdateStatusByUser(orderID, userID, models.OrderStatusProcessing)
 }
