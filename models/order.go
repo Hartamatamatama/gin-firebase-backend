@@ -20,6 +20,7 @@ type Order struct {
 	TotalAmount     float64     `gorm:"not null"                 json:"total_amount"`
 	ShippingAddress string      `gorm:"type:text"                json:"shipping_address"`
 	Notes           string      `gorm:"type:text"                json:"notes"`
+	PaymentMethod   string      `gorm:"size:50;default:global_institute_pay" json:"payment_method"`
 	Items           []OrderItem `gorm:"foreignKey:OrderID"       json:"items,omitempty"`
 }
 
@@ -38,5 +39,6 @@ type OrderItem struct {
 type CheckoutRequest struct {
 	ShippingAddress string `json:"shipping_address" binding:"required"`
 	Notes           string `json:"notes"`
+	PaymentMethod   string `json:"payment_method"`
 	FCMToken        string `json:"fcm_token"`
 }

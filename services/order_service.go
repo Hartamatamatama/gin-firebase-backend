@@ -60,6 +60,7 @@ func (s *OrderService) Checkout(userID uint, req *models.CheckoutRequest) (*mode
 		TotalAmount:     totalAmount,
 		ShippingAddress: req.ShippingAddress,
 		Notes:           req.Notes,
+		PaymentMethod:   req.PaymentMethod,
 		Items:           orderItems,
 	}
 
