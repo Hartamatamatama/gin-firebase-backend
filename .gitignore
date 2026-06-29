@@ -11,3 +11,4 @@ service_account.json
 logs/
 screenshots/
 .hermes-tmp*
+.hermes-tmp*
