@@ -61,6 +61,7 @@ func (s *OrderService) Checkout(userID uint, req *models.CheckoutRequest) (*mode
 		ShippingAddress: req.ShippingAddress,
 		Notes:           req.Notes,
 		PaymentMethod:   req.PaymentMethod,
+		FCMToken:        req.FCMToken,
 		Items:           orderItems,
 	}
 
@@ -100,19 +101,23 @@ func (s *OrderService) UpdateOrderStatus(orderID uint, status models.OrderStatus
 	return s.orderRepo.UpdateStatus(orderID, status)
 }
 
-func (s *OrderService) ConfirmPayment(orderID, userID uint) error {
+func (s *OrderService) ConfirmPayment(orderID, userID uint) (*models.Order, error) {
 	// Dapatkan order untuk tahu produk apa yang dibeli
 	order, err := s.orderRepo.GetByID(orderID, userID)
 	if err != nil {
-		return errors.New("order tidak ditemukan")
+		return nil, errors.New("order tidak ditemukan")
 	}
 
 	// Kurangi stok untuk setiap item di order (baru setelah bayar!)
 	for _, item := range order.Items {
 		if err := s.productRepo.UpdateStock(item.ProductID, item.Quantity); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return s.orderRepo.UpdateStatusByUser(orderID, userID, models.OrderStatusProcessing)
+	if err := s.orderRepo.UpdateStatusByUser(orderID, userID, models.OrderStatusProcessing); err != nil {
+		return nil, err
+	}
+
+	return order, nil
 }

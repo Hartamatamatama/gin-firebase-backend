@@ -38,36 +38,7 @@ func (h *OrderHandler) Checkout(c *gin.Context) {
 		return
 	}
 
-	// === OPERASI PELUNCURAN NOTIFIKASI FCM ===
-	if req.FCMToken != "" {
-		// 1. Inisialisasi Firebase Admin
-		opt := option.WithCredentialsFile("serviceAccountKey.json") // Pastikan file ini ada!
-		app, err := firebase.NewApp(context.Background(), nil, opt)
-		if err == nil {
-			client, err := app.Messaging(context.Background())
-			if err == nil {
-				// 2. Siapkan Amunisi Pesan
-				message := &messaging.Message{
-					Notification: &messaging.Notification{
-						Title: "Order Diterima 🛍️",
-						Body:  "Pesanan jam tangan mewahmu sedang kami proses ke alamat: " + req.ShippingAddress,
-					},
-					Token: req.FCMToken, // Tembak ke HP yang tepat
-				}
 
-				// 3. Luncurkan!
-				_, sendErr := client.Send(context.Background(), message)
-				if sendErr != nil {
-					fmt.Println("Gagal mengirim notifikasi:", sendErr)
-				} else {
-					fmt.Println("🔔 Notifikasi sukses ditembakkan ke HP user!")
-				}
-			}
-		} else {
-			fmt.Println("Gagal inisialisasi Firebase Admin:", err)
-		}
-	}
-	// ==========================================
 
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
@@ -126,10 +97,34 @@ func (h *OrderHandler) ConfirmPayment(c *gin.Context) {
 		return
 	}
 
-	if err := h.orderService.ConfirmPayment(uint(id), userID); err != nil {
+	order, err := h.orderService.ConfirmPayment(uint(id), userID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Order tidak ditemukan"})
 		return
 	}
+
+	// === KIRIM NOTIFIKASI FCM SETELAH BAYAR BERHASIL ===
+	if order.FCMToken != "" {
+		opt := option.WithCredentialsFile("serviceAccountKey.json")
+		app, fErr := firebase.NewApp(context.Background(), nil, opt)
+		if fErr == nil {
+			client, mErr := app.Messaging(context.Background())
+			if mErr == nil {
+				message := &messaging.Message{
+					Notification: &messaging.Notification{
+						Title: "Pembayaran Berhasil ✅",
+						Body:  "Pesanan #" + fmt.Sprint(order.ID) + " telah dibayar. Stok sudah dikurangi, pesanan sedang diproses.",
+					},
+					Token: order.FCMToken,
+				}
+				_, sErr := client.Send(context.Background(), message)
+				if sErr != nil {
+					fmt.Println("Gagal kirim notifikasi:", sErr)
+				}
+			}
+		}
+	}
+	// ==========================================
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Pembayaran dikonfirmasi"})
 }

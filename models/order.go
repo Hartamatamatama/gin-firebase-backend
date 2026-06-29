@@ -21,6 +21,7 @@ type Order struct {
 	ShippingAddress string      `gorm:"type:text"                json:"shipping_address"`
 	Notes           string      `gorm:"type:text"                json:"notes"`
 	PaymentMethod   string      `gorm:"size:50;default:global_institute_pay" json:"payment_method"`
+	FCMToken        string      `gorm:"type:text"                json:"fcm_token"`
 	Items           []OrderItem `gorm:"foreignKey:OrderID"       json:"items,omitempty"`
 }
 
